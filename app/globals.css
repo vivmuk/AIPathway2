@@ -11,9 +11,6 @@
     --shadow-xl: 0 30px 80px rgba(0, 0, 0, 0.15);
   }
 
-  * {
-    @apply border-border;
-  }
 
   body {
     @apply bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 antialiased;
