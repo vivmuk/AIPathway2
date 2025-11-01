@@ -6,11 +6,6 @@ export class VeniceAIService {
   private client: AxiosInstance;
 
   constructor() {
-    // Validate API key is set
-    if (!VENICE_CONFIG.API_KEY) {
-      console.warn('Venice AI API key is not set. Please set VENICE_API_KEY environment variable.');
-    }
-
     this.client = axios.create({
       baseURL: VENICE_CONFIG.BASE_URL,
       headers: {
@@ -109,7 +104,6 @@ For each chapter provide:
       const content = response.data.choices[0].message.content;
       return typeof content === 'string' ? JSON.parse(content) : content;
     } catch (error) {
-      console.error('Error generating course outline:', error);
       throw new Error(`Failed to generate course outline: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -254,28 +248,10 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
         }
         return parsed;
       } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        console.error('Raw content:', content);
         throw new Error(`Failed to parse chapter content: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
       }
     } catch (error: any) {
-      console.error('Error generating chapter content:', error);
-      
-      // Enhanced error logging for Venice API responses
-      if (error.response) {
-        console.error('Venice API Error Response:', {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: JSON.stringify(error.response.data, null, 2),
-        });
-        
-        // Check for validation errors
-        if (error.response.data?.issues || error.response.data?.details) {
-          console.error('Schema validation issues:', JSON.stringify(error.response.data.issues || error.response.data.details, null, 2));
-        }
-      }
-      
-      // Provide more detailed error information
+      // Provide detailed error information
       if (error.response) {
         // The request was made and the server responded with a status code outside 2xx
         const status = error.response.status;
@@ -340,7 +316,6 @@ Provide 3-5 most relevant updates with source links.`;
       const content = response.data.choices[0].message.content;
       return this.parseNewsUpdates(content);
     } catch (error) {
-      console.error('Error fetching latest updates:', error);
       // Return empty array if updates fail - don't break the flow
       return [];
     }
@@ -387,13 +362,6 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
 - How it applies to the learning goal`;
 
     try {
-      console.log('Calling Venice AI for single chapter:', {
-        model: VENICE_CONFIG.MODELS.CONTENT,
-        baseURL: VENICE_CONFIG.BASE_URL,
-        hasApiKey: !!VENICE_CONFIG.API_KEY,
-        learningGoalLength: learningGoal.length,
-      });
-
       const requestPayload = {
         model: VENICE_CONFIG.MODELS.CONTENT,
         messages: [
@@ -504,12 +472,6 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
         timeout: VENICE_CONFIG.TIMEOUTS.CONTENT,
       });
 
-      console.log('Venice AI response received:', {
-        status: response.status,
-        hasChoices: !!response.data?.choices,
-        choiceCount: response.data?.choices?.length,
-      });
-
       const content = response.data.choices[0].message.content;
       
       // Handle potential parsing errors
@@ -521,23 +483,10 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
         }
         return parsed;
       } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        console.error('Raw content:', content);
         throw new Error(`Failed to parse chapter content: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
       }
     } catch (error: any) {
-      console.error('Error generating single chapter:', error);
-      
-      // Enhanced error logging for Venice API responses
-      if (error.response) {
-        console.error('Venice API Error Response:', {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data,
-        });
-      }
-      
-      // Provide more detailed error information
+      // Provide detailed error information
       if (error.response) {
         const status = error.response.status;
         const statusText = error.response.statusText;
@@ -604,7 +553,6 @@ Make it concise but informative, focusing on actionable insights.`;
       const summary = response.data.choices[0].message.content;
       return summary || '';
     } catch (error) {
-      console.error('Error generating updates summary:', error);
       return '';
     }
   }

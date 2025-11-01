@@ -53,7 +53,6 @@ export class CourseGenerator {
 
     // Start generation in background (non-blocking)
     this.processCourseGeneration(courseId, request).catch(error => {
-      console.error(`Course generation failed for ${courseId}:`, error);
       this.updateStatus(courseId, 'error', -1, { error: error.message });
     });
 
@@ -155,7 +154,7 @@ export class CourseGenerator {
           );
           course.chapters[i].latestNews = latestNews;
         } catch (error) {
-          console.warn(`Failed to fetch news for chapter ${i + 1}:`, error);
+          // Silently continue on news fetch failure
           course.chapters[i].latestNews = [];
         }
 
@@ -178,7 +177,6 @@ export class CourseGenerator {
       this.updateStatus(courseId, 'completed', 100);
 
     } catch (error) {
-      console.error('Course generation error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.updateStatus(courseId, 'error', -1, { error: errorMessage });
 

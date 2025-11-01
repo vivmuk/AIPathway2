@@ -258,12 +258,12 @@ function SingleChapterContent() {
         </div>
 
         {/* AI Concepts to Learn */}
-        {chapterData.content?.ai_concepts_to_learn && chapterData.content.ai_concepts_to_learn.length > 0 && (
-          <div className="card mb-6">
-            <h2 className="text-2xl font-bold mb-4 text-slate-800">AI Concepts to Learn for Upskilling</h2>
-            <p className="text-slate-600 mb-6 text-sm">
-              Master these AI concepts, skills, and technologies to excel in this area
-            </p>
+        <div className="card mb-6">
+          <h2 className="text-2xl font-bold mb-4 text-slate-800">AI Concepts to Learn for Upskilling</h2>
+          <p className="text-slate-600 mb-6 text-sm">
+            Master these AI concepts, skills, and technologies to excel in this area
+          </p>
+          {chapterData.content?.ai_concepts_to_learn && chapterData.content.ai_concepts_to_learn.length > 0 ? (
             <div className="space-y-4">
               {chapterData.content.ai_concepts_to_learn.map((concept, index) => (
                 <div key={index} className="border-l-4 border-indigo-500 pl-4 py-4 bg-slate-50 rounded-r-lg">
@@ -297,8 +297,14 @@ function SingleChapterContent() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="bg-slate-50 rounded-lg p-6 text-center border border-slate-200">
+              <p className="text-slate-600">
+                No specific AI concepts were identified for this topic by the AI model.
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Action Items */}
         <div className="card mb-6">

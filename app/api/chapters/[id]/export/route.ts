@@ -68,7 +68,7 @@ function generateChapterHTML(chapterData: any): string {
     ${renderPracticalExercises(content.practical_exercises)}
     ${renderKeyTakeaways(content.key_takeaways)}
     ${renderActionItems(content.action_items)}
-    ${content.ai_concepts_to_learn && content.ai_concepts_to_learn.length > 0 ? renderAIConcepts(content.ai_concepts_to_learn) : ''}
+    ${renderAIConcepts(content.ai_concepts_to_learn)}
     ${latestNews && latestNews.length > 0 ? renderLatestUpdates(latestNews, updatesSummary) : ''}
   </div>
 </body>
@@ -190,12 +190,17 @@ function renderActionItems(items: any[]): string {
 }
 
 function renderAIConcepts(concepts: any[]): string {
-  if (!concepts || concepts.length === 0) return '';
-  
   return `
     <section class="section">
       <h2 class="section-title">AI Concepts to Learn for Upskilling</h2>
       <p class="section-intro">Master these AI concepts, skills, and technologies to excel in this area:</p>
+      ${!concepts || concepts.length === 0 ? `
+        <div style="background-color: #f8fafc; padding: 24px; text-align: center; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <p style="color: #64748b; margin: 0;">
+            No specific AI concepts were identified for this topic by the AI model.
+          </p>
+        </div>
+      ` : `
       <div class="ai-concepts-grid">
         ${concepts.map((concept, index) => `
           <div class="ai-concept-card">
@@ -221,6 +226,7 @@ function renderAIConcepts(concepts: any[]): string {
           </div>
         `).join('')}
       </div>
+      `}
     </section>
   `;
 }

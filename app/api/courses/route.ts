@@ -9,7 +9,6 @@ export async function POST(request: NextRequest) {
   try {
     // Check if Venice API key is configured
     if (!process.env.VENICE_API_KEY) {
-      console.error('VENICE_API_KEY is not set in environment variables');
       return NextResponse.json(
         {
           error: 'Venice AI API key not configured',
@@ -42,7 +41,6 @@ export async function POST(request: NextRequest) {
     }, { status: 202 });
 
   } catch (error) {
-    console.error('Error creating course:', error);
     return NextResponse.json(
       {
         error: 'Failed to start course generation',
@@ -58,7 +56,6 @@ export async function GET() {
     const courses = courseGenerator.getAllCourses();
     return NextResponse.json({ courses });
   } catch (error) {
-    console.error('Error fetching courses:', error);
     return NextResponse.json(
       { error: 'Failed to fetch courses' },
       { status: 500 }

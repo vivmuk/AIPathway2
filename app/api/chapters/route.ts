@@ -9,7 +9,6 @@ export async function POST(request: NextRequest) {
   try {
     // Check if Venice API key is configured
     if (!process.env.VENICE_API_KEY) {
-      console.error('VENICE_API_KEY is not set in environment variables');
       return NextResponse.json(
         {
           error: 'Venice AI API key not configured',
@@ -30,13 +29,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Log request for debugging
-    console.log('Generating single chapter:', {
-      learningGoal: learningGoal.substring(0, 50),
-      hasRoleContext: !!roleContext,
-      experienceLevel: experienceLevel || 'intermediate',
-    });
-
     // Generate single chapter
     const chapterContent = await veniceAI.generateSingleChapter(
       learningGoal,
@@ -48,27 +40,23 @@ export async function POST(request: NextRequest) {
     let latestUpdates: NewsItem[] = [];
     let updatesSummary = '';
     try {
-      console.log('Fetching latest updates for:', learningGoal);
       latestUpdates = await veniceAI.fetchLatestUpdates(
         learningGoal,
         roleContext || learningGoal
       );
-      console.log(`Found ${latestUpdates.length} latest updates`);
       
       // Generate summary of latest updates using Venice AI
       if (latestUpdates.length > 0) {
         try {
-          console.log('Generating summary of latest updates');
           updatesSummary = await veniceAI.generateUpdatesSummary(
             learningGoal,
             latestUpdates
           );
         } catch (error) {
-          console.warn('Failed to generate updates summary (non-critical):', error);
+          // Silently continue if summary generation fails
         }
       }
     } catch (error) {
-      console.warn('Failed to fetch latest updates (non-critical):', error);
       // Continue without updates - don't fail the whole request
     }
 
@@ -84,9 +72,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Error generating chapter:', error);
-    
-    // Provide more detailed error information
+    // Provide error information
     let errorMessage = 'Failed to generate chapter';
     let errorDetails = error instanceof Error ? error.message : 'Unknown error';
     
@@ -95,13 +81,6 @@ export async function POST(request: NextRequest) {
       const data = error.response.data;
       errorMessage = `Venice AI API error (${status})`;
       errorDetails = JSON.stringify(data) || error.message;
-      
-      console.error('Venice AI API Error:', {
-        status,
-        data,
-        url: error.config?.url,
-        method: error.config?.method,
-      });
     } else if (error?.request) {
       errorMessage = 'No response from Venice AI';
       errorDetails = 'Please check your API key and network connection';
