@@ -186,7 +186,7 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
                       explanation: { type: 'string' },
                       role_example: { type: 'string' },
                       tools_mentioned: {
-                        type: 'array',
+                        type: ['array', 'null'],
                         items: { type: 'string' },
                       },
                     },
@@ -227,6 +227,27 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
                     additionalProperties: false,
                   },
                 },
+                ai_concepts_to_learn: {
+                  type: ['array', 'null'],
+                  items: {
+                    type: 'object',
+                    properties: {
+                      concept: { type: 'string' },
+                      description: { type: 'string' },
+                      why_important: { type: 'string' },
+                      skill_level: {
+                        type: 'string',
+                        enum: ['beginner', 'intermediate', 'advanced'],
+                      },
+                      tools_or_platforms: {
+                        type: ['array', 'null'],
+                        items: { type: 'string' },
+                      },
+                    },
+                    required: ['concept', 'description', 'why_important', 'skill_level'],
+                    additionalProperties: false,
+                  },
+                },
               },
               required: ['opening_scenario', 'core_concepts', 'practical_exercises', 'key_takeaways', 'action_items'],
               additionalProperties: false,
@@ -241,14 +262,30 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
       
       // Handle potential parsing errors
       try {
+        if (!content || (typeof content === 'string' && content.trim().length === 0)) {
+          throw new Error('Empty response from Venice AI');
+        }
+        
         const parsed = typeof content === 'string' ? JSON.parse(content) : content;
-        // Ensure ai_concepts_to_learn exists even if not returned
-        if (!parsed.ai_concepts_to_learn) {
+        
+        // Handle null values properly (Venice can return null for optional fields)
+        if (parsed.ai_concepts_to_learn === null || parsed.ai_concepts_to_learn === undefined) {
           parsed.ai_concepts_to_learn = [];
         }
+        
+        // Ensure all required fields exist
+        if (!parsed.opening_scenario || !parsed.core_concepts || !parsed.practical_exercises || 
+            !parsed.key_takeaways || !parsed.action_items) {
+          throw new Error('Incomplete response: missing required fields');
+        }
+        
         return parsed;
       } catch (parseError) {
-        throw new Error(`Failed to parse chapter content: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+        const errorMsg = parseError instanceof Error ? parseError.message : 'Invalid JSON';
+        const contentPreview = typeof content === 'string' 
+          ? content.substring(0, 200) + (content.length > 200 ? '...' : '')
+          : 'Non-string content';
+        throw new Error(`Failed to parse chapter content: ${errorMsg}. Content preview: ${contentPreview}`);
       }
     } catch (error: any) {
       // Provide detailed error information
@@ -398,7 +435,7 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
                       explanation: { type: 'string' },
                       role_example: { type: 'string' },
                       tools_mentioned: {
-                        type: 'array',
+                        type: ['array', 'null'],
                         items: { type: 'string' },
                       },
                     },
@@ -440,7 +477,7 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
                   },
                 },
                 ai_concepts_to_learn: {
-                  type: 'array',
+                  type: ['array', 'null'],
                   items: {
                     type: 'object',
                     properties: {
@@ -452,7 +489,7 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
                         enum: ['beginner', 'intermediate', 'advanced'],
                       },
                       tools_or_platforms: {
-                        type: 'array',
+                        type: ['array', 'null'],
                         items: { type: 'string' },
                       },
                     },
@@ -476,14 +513,30 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
       
       // Handle potential parsing errors
       try {
+        if (!content || (typeof content === 'string' && content.trim().length === 0)) {
+          throw new Error('Empty response from Venice AI');
+        }
+        
         const parsed = typeof content === 'string' ? JSON.parse(content) : content;
-        // Ensure ai_concepts_to_learn exists even if not returned
-        if (!parsed.ai_concepts_to_learn) {
+        
+        // Handle null values properly (Venice can return null for optional fields)
+        if (parsed.ai_concepts_to_learn === null || parsed.ai_concepts_to_learn === undefined) {
           parsed.ai_concepts_to_learn = [];
         }
+        
+        // Ensure all required fields exist
+        if (!parsed.opening_scenario || !parsed.core_concepts || !parsed.practical_exercises || 
+            !parsed.key_takeaways || !parsed.action_items) {
+          throw new Error('Incomplete response: missing required fields');
+        }
+        
         return parsed;
       } catch (parseError) {
-        throw new Error(`Failed to parse chapter content: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+        const errorMsg = parseError instanceof Error ? parseError.message : 'Invalid JSON';
+        const contentPreview = typeof content === 'string' 
+          ? content.substring(0, 200) + (content.length > 200 ? '...' : '')
+          : 'Non-string content';
+        throw new Error(`Failed to parse chapter content: ${errorMsg}. Content preview: ${contentPreview}`);
       }
     } catch (error: any) {
       // Provide detailed error information
