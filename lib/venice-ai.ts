@@ -335,16 +335,19 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
     twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
 
     const searchQuery = `
-Search for the latest developments, news, and updates about "${chapterTopic}" in the context of ${roleContext}.
-Focus on:
-1. New tools or platforms released
-2. Industry best practices or case studies
-3. Regulatory changes or compliance updates
-4. Breakthrough techniques or methodologies
-5. Real-world implementations and results
+Search for the latest developments, research, and GenAI applications related to "${chapterTopic}" in the context of ${roleContext}.
 
-Time frame: Last 2 months (since ${twoMonthsAgo.toLocaleDateString()})
-Provide 3-5 most relevant updates with source links.`;
+Focus specifically on:
+1. How Generative AI (GenAI) is being applied to this topic/field
+2. Latest research papers, breakthroughs, or innovations
+3. New AI tools, models, or platforms relevant to this area
+4. Real-world case studies showing GenAI implementation
+5. Industry trends and best practices using AI
+
+If this is a GenAI-specific topic, focus on the latest research, model updates, and applications.
+
+Time frame: Last 3 months (since ${twoMonthsAgo.toLocaleDateString()})
+Provide 3-5 most relevant updates with source links. Format as structured news items with title, summary, and source URL.`;
 
     try {
       const response = await this.client.post('/chat/completions', {
