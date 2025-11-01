@@ -6,10 +6,13 @@ export async function POST(request: NextRequest) {
   try {
     const body: CourseGenerationRequest = await request.json();
 
-    // Validate request
-    if (!body.jobDescription || body.jobDescription.trim().length < 20) {
+    // Validate request - must have either jobDescription or internalRole
+    const hasJobDescription = body.jobDescription && body.jobDescription.trim().length >= 20;
+    const hasInternalRole = body.internalRole && body.internalRole.trim().length >= 20;
+    
+    if (!hasJobDescription && !hasInternalRole) {
       return NextResponse.json(
-        { error: 'Job description must be at least 20 characters' },
+        { error: 'Either job description or internal role/workflow must be provided with at least 20 characters' },
         { status: 400 }
       );
     }

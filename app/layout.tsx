@@ -9,9 +9,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'GenAI Course Creator - Personalized AI Education',
-  description: 'Create personalized, comprehensive AI education courses tailored to specific job roles using Venice AI',
-  keywords: ['AI education', 'GenAI', 'course creator', 'personalized learning', 'Venice AI'],
+  title: 'AI Pathway 2 - Upskill for Any Job with AI',
+  description: 'Upskill yourself for any job by learning to apply AI to the requirements. Transform job descriptions or internal workflows into comprehensive AI learning paths.',
+  keywords: ['AI education', 'AI Pathway', 'upskilling', 'job training', 'AI skills', 'career development'],
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

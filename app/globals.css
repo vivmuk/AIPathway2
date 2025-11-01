@@ -4,11 +4,12 @@
 
 @layer base {
   :root {
-    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 30px 80px rgba(0, 0, 0, 0.15);
+    --gradient-primary: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    --gradient-secondary: linear-gradient(135deg, #475569 0%, #64748b 100%);
+    --gradient-accent: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    --gradient-success: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.08);
+    --shadow-xl: 0 30px 80px rgba(0, 0, 0, 0.12);
   }
 
   * {
@@ -16,7 +17,7 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 antialiased;
+    @apply bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900 antialiased;
     font-feature-settings: 'cv11', 'ss01';
   }
 
@@ -35,31 +36,31 @@
   }
 
   .btn-primary {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95;
+    @apply bg-gradient-to-r from-slate-700 to-slate-800 text-white px-8 py-4 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-slate-800 hover:to-slate-900 active:scale-[0.98];
   }
 
   .btn-secondary {
-    @apply bg-white text-gray-900 px-8 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 border border-gray-200;
+    @apply bg-white text-slate-800 px-8 py-4 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300 hover:bg-slate-50 active:scale-[0.98] border border-slate-200;
   }
 
   .card {
-    @apply bg-white rounded-3xl shadow-xl p-8 transition-all duration-300 hover:shadow-2xl border border-gray-100;
+    @apply bg-white rounded-xl shadow-lg p-8 transition-all duration-300 hover:shadow-xl border border-slate-200;
   }
 
   .card-glass {
-    @apply backdrop-blur-xl bg-white/80 rounded-3xl shadow-xl p-8 transition-all duration-300 hover:shadow-2xl border border-white/20;
+    @apply backdrop-blur-xl bg-white/90 rounded-xl shadow-lg p-8 transition-all duration-300 hover:shadow-xl border border-slate-200/50;
   }
 
   .input-field {
-    @apply w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 outline-none bg-white text-gray-900 placeholder-gray-400;
+    @apply w-full px-6 py-4 rounded-lg border-2 border-slate-200 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 transition-all duration-200 outline-none bg-white text-slate-900 placeholder-slate-400;
   }
 
   .textarea-field {
-    @apply w-full px-6 py-4 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-200 outline-none bg-white text-gray-900 placeholder-gray-400 resize-none;
+    @apply w-full px-6 py-4 rounded-lg border-2 border-slate-200 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 transition-all duration-200 outline-none bg-white text-slate-900 placeholder-slate-400 resize-none;
   }
 
   .section-title {
-    @apply text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+    @apply text-5xl md:text-6xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent;
   }
 
   .gradient-border {
@@ -119,25 +120,25 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-gray-100 rounded-full;
+    @apply bg-slate-100 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gradient-to-b from-blue-500 to-purple-600 rounded-full;
+    @apply bg-gradient-to-b from-slate-600 to-slate-700 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply from-blue-600 to-purple-700;
+    @apply from-slate-700 to-slate-800;
   }
 }
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent;
   }
 
   .text-gradient-secondary {
-    @apply bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent;
   }
 
   .text-gradient-success {
