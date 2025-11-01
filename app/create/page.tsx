@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, ArrowLeft, Loader2, Briefcase, FileText, Zap, Workflow } from 'lucide-react';
+import { Sparkles, ArrowLeft, Loader2, Briefcase, FileText, Zap, Workflow, BookOpen } from 'lucide-react';
 
-type PathType = 'job-description' | 'internal-role' | null;
+type PathType = 'job-description' | 'internal-role' | 'single-chapter' | null;
 
 export default function CreateCoursePage() {
   const router = useRouter();
@@ -12,6 +12,8 @@ export default function CreateCoursePage() {
   const [formData, setFormData] = useState({
     jobDescription: '',
     internalRole: '',
+    learningGoal: '',
+    roleContext: '',
     industry: '',
     experienceLevel: 'intermediate',
   });
@@ -24,22 +26,48 @@ export default function CreateCoursePage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/courses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      // Handle single chapter generation differently
+      if (selectedPath === 'single-chapter') {
+        const response = await fetch('/api/chapters', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            learningGoal: formData.learningGoal,
+            roleContext: formData.roleContext,
+            experienceLevel: formData.experienceLevel,
+          }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create course');
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to generate chapter');
+        }
+
+        // Redirect to chapter viewer
+        const chapterId = encodeURIComponent(formData.learningGoal);
+        router.push(`/chapters/${chapterId}?data=${encodeURIComponent(JSON.stringify(data.chapter))}`);
+      } else {
+        // Full course generation
+        const response = await fetch('/api/courses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to create course');
+        }
+
+        // Redirect to progress page
+        router.push(`/courses/${data.courseId}/progress`);
       }
-
-      // Redirect to progress page
-      router.push(`/courses/${data.courseId}/progress`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create course');
       setIsLoading(false);
@@ -60,6 +88,8 @@ export default function CreateCoursePage() {
       return formData.jobDescription.trim().length >= 20;
     } else if (selectedPath === 'internal-role') {
       return formData.internalRole.trim().length >= 20;
+    } else if (selectedPath === 'single-chapter') {
+      return formData.learningGoal.trim().length >= 10;
     }
     return false;
   };
@@ -107,7 +137,7 @@ export default function CreateCoursePage() {
 
             {/* Path Selection */}
             {!selectedPath && (
-              <div className="grid md:grid-cols-2 gap-6 mb-12">
+              <div className="grid md:grid-cols-3 gap-6 mb-12">
                 <button
                   onClick={() => setSelectedPath('job-description')}
                   className="card group hover:shadow-xl transition-all duration-300 text-left p-8"
@@ -141,6 +171,23 @@ export default function CreateCoursePage() {
                     <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
                   </div>
                 </button>
+
+                <button
+                  onClick={() => setSelectedPath('single-chapter')}
+                  className="card group hover:shadow-xl transition-all duration-300 text-left p-8"
+                >
+                  <div className="w-16 h-16 bg-gradient-to-br from-slate-700 to-slate-800 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <BookOpen className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">Single Chapter</h3>
+                  <p className="text-slate-600 mb-4">
+                    Generate just one focused chapter on a specific topic you want to learn. Perfect for quick learning or targeted skill development.
+                  </p>
+                  <div className="flex items-center text-slate-700 font-semibold">
+                    <span>Get Started</span>
+                    <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+                  </div>
+                </button>
               </div>
             )}
 
@@ -155,6 +202,8 @@ export default function CreateCoursePage() {
                     setFormData({
                       jobDescription: '',
                       internalRole: '',
+                      learningGoal: '',
+                      roleContext: '',
                       industry: '',
                       experienceLevel: 'intermediate',
                     });
@@ -229,21 +278,82 @@ export default function CreateCoursePage() {
                     </div>
                   )}
 
-                  {/* Additional Options */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold mb-3">
-                        Industry (Optional)
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.industry}
-                        onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                        placeholder="e.g., Healthcare, Finance, Tech"
-                        className="input-field"
-                      />
-                    </div>
+                  {/* Single Chapter Path */}
+                  {selectedPath === 'single-chapter' && (
+                    <>
+                      <div className="mb-8">
+                        <label className="flex items-center text-lg font-semibold mb-4">
+                          <BookOpen className="w-5 h-5 mr-2 text-slate-700" />
+                          What do you want to learn? *
+                        </label>
+                        <textarea
+                          value={formData.learningGoal}
+                          onChange={(e) => setFormData({ ...formData, learningGoal: e.target.value })}
+                          placeholder="e.g., How to use ChatGPT for customer service, Building AI-powered dashboards, Automating data analysis with Python..."
+                          rows={4}
+                          className="textarea-field"
+                          required
+                          minLength={10}
+                        />
+                        <p className="text-sm text-slate-500 mt-2">
+                          Describe the specific topic or skill you want to learn (minimum 10 characters)
+                        </p>
+                      </div>
 
+                      <div className="mb-8">
+                        <label className="flex items-center text-lg font-semibold mb-4">
+                          <Briefcase className="w-5 h-5 mr-2 text-slate-700" />
+                          Your Role/Work Context (Optional)
+                        </label>
+                        <textarea
+                          value={formData.roleContext}
+                          onChange={(e) => setFormData({ ...formData, roleContext: e.target.value })}
+                          placeholder="Describe your role or how you plan to apply this knowledge..."
+                          rows={3}
+                          className="textarea-field"
+                        />
+                        <p className="text-sm text-slate-500 mt-2">
+                          This helps us tailor the content to your specific needs
+                        </p>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Additional Options */}
+                  {(selectedPath === 'job-description' || selectedPath === 'internal-role') && (
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold mb-3">
+                          Industry (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.industry}
+                          onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                          placeholder="e.g., Healthcare, Finance, Tech"
+                          className="input-field"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold mb-3">
+                          Experience Level
+                        </label>
+                        <select
+                          value={formData.experienceLevel}
+                          onChange={(e) => setFormData({ ...formData, experienceLevel: e.target.value })}
+                          className="input-field"
+                        >
+                          <option value="beginner">Beginner - New to AI</option>
+                          <option value="intermediate">Intermediate - Some AI knowledge</option>
+                          <option value="advanced">Advanced - Experienced with AI</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Experience Level for Single Chapter */}
+                  {selectedPath === 'single-chapter' && (
                     <div>
                       <label className="block text-sm font-semibold mb-3">
                         Experience Level
@@ -258,7 +368,7 @@ export default function CreateCoursePage() {
                         <option value="advanced">Advanced - Experienced with AI</option>
                       </select>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Error Display */}
@@ -276,11 +386,15 @@ export default function CreateCoursePage() {
                     <span className="text-white text-xs font-bold">⏱</span>
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-800 mb-1">Generation Time: Up to 10 minutes</p>
+                    <p className="font-semibold text-slate-800 mb-1">
+                      {selectedPath === 'single-chapter' 
+                        ? 'Generation Time: 1-2 minutes' 
+                        : 'Generation Time: Up to 10 minutes'}
+                    </p>
                     <p className="text-sm text-slate-600">
-                      Our AI is creating a comprehensive, personalized course tailored to your specific role. 
-                      This process involves deep analysis, content generation, and enrichment with the latest industry updates. 
-                      Please be patient - we're crafting something truly valuable for you!
+                      {selectedPath === 'single-chapter' 
+                        ? 'Our AI is creating a focused, comprehensive chapter on your chosen topic. This typically takes 1-2 minutes.'
+                        : 'Our AI is creating a comprehensive, personalized course tailored to your specific role. This process involves deep analysis, content generation, and enrichment with the latest industry updates. Please be patient - we\'re crafting something truly valuable for you!'}
                     </p>
                   </div>
                 </div>

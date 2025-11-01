@@ -221,9 +221,28 @@ Create engaging, practical content that:
 
       const content = response.data.choices[0].message.content;
       return typeof content === 'string' ? JSON.parse(content) : content;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating chapter content:', error);
-      throw new Error(`Failed to generate chapter content: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Provide more detailed error information
+      if (error.response) {
+        // The request was made and the server responded with a status code outside 2xx
+        const status = error.response.status;
+        const statusText = error.response.statusText;
+        const data = error.response.data;
+        
+        if (status === 404) {
+          throw new Error(`Venice AI endpoint not found (404). Please check your VENICE_BASE_URL configuration. Current: ${VENICE_CONFIG.BASE_URL}/chat/completions`);
+        }
+        
+        throw new Error(`Failed to generate chapter content: ${status} ${statusText} - ${JSON.stringify(data)}`);
+      } else if (error.request) {
+        // The request was made but no response was received
+        throw new Error(`No response from Venice AI. Please check your API key and network connection.`);
+      } else {
+        // Something happened in setting up the request
+        throw new Error(`Failed to generate chapter content: ${error.message || 'Unknown error'}`);
+      }
     }
   }
 
@@ -272,6 +291,141 @@ Provide 3-5 most relevant updates with source links.`;
       console.error('Error fetching latest updates:', error);
       // Return empty array if updates fail - don't break the flow
       return [];
+    }
+  }
+
+  /**
+   * Generate a single chapter based on what the user wants to learn
+   */
+  async generateSingleChapter(
+    learningGoal: string,
+    roleContext?: string,
+    experienceLevel: string = 'intermediate'
+  ): Promise<ChapterContent> {
+    const userPrompt = `
+Create a comprehensive chapter about: "${learningGoal}"
+
+${roleContext ? `Role/Work Context: ${roleContext}` : ''}
+Experience Level: ${experienceLevel}
+
+Generate engaging, practical content that:
+1. Starts with a real-world scenario
+2. Explains concepts clearly with examples
+3. Includes interactive exercises
+4. Provides actionable takeaways
+5. Suggests immediate applications
+
+Make it practical and immediately applicable.`;
+
+    try {
+      const response = await this.client.post('/chat/completions', {
+        model: VENICE_CONFIG.MODELS.CONTENT,
+        messages: [
+          { role: 'system', content: VENICE_PROMPTS.SYSTEM_CONTENT },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 4000,
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'chapter_content',
+            strict: true,
+            schema: {
+              type: 'object',
+              properties: {
+                opening_scenario: {
+                  type: 'object',
+                  properties: {
+                    title: { type: 'string' },
+                    scenario: { type: 'string' },
+                    challenge: { type: 'string' },
+                    ai_solution: { type: 'string' },
+                  },
+                  required: ['title', 'scenario', 'challenge', 'ai_solution'],
+                  additionalProperties: false,
+                },
+                core_concepts: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      concept: { type: 'string' },
+                      explanation: { type: 'string' },
+                      role_example: { type: 'string' },
+                      tools_mentioned: {
+                        type: 'array',
+                        items: { type: 'string' },
+                      },
+                    },
+                    required: ['concept', 'explanation', 'role_example'],
+                    additionalProperties: false,
+                  },
+                },
+                practical_exercises: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      title: { type: 'string' },
+                      instructions: { type: 'string' },
+                      expected_outcome: { type: 'string' },
+                      difficulty: {
+                        type: 'string',
+                        enum: ['beginner', 'intermediate', 'advanced'],
+                      },
+                    },
+                    required: ['title', 'instructions', 'expected_outcome', 'difficulty'],
+                    additionalProperties: false,
+                  },
+                },
+                key_takeaways: {
+                  type: 'array',
+                  items: { type: 'string' },
+                },
+                action_items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      task: { type: 'string' },
+                      timeline: { type: 'string' },
+                    },
+                    required: ['task', 'timeline'],
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ['opening_scenario', 'core_concepts', 'practical_exercises', 'key_takeaways', 'action_items'],
+              additionalProperties: false,
+            },
+          },
+        },
+      }, {
+        timeout: VENICE_CONFIG.TIMEOUTS.CONTENT,
+      });
+
+      const content = response.data.choices[0].message.content;
+      return typeof content === 'string' ? JSON.parse(content) : content;
+    } catch (error: any) {
+      console.error('Error generating single chapter:', error);
+      
+      // Provide more detailed error information
+      if (error.response) {
+        const status = error.response.status;
+        const statusText = error.response.statusText;
+        const data = error.response.data;
+        
+        if (status === 404) {
+          throw new Error(`Venice AI endpoint not found (404). Please check your VENICE_BASE_URL configuration. Current: ${VENICE_CONFIG.BASE_URL}/chat/completions`);
+        }
+        
+        throw new Error(`Failed to generate chapter: ${status} ${statusText} - ${JSON.stringify(data)}`);
+      } else if (error.request) {
+        throw new Error(`No response from Venice AI. Please check your API key and network connection.`);
+      } else {
+        throw new Error(`Failed to generate chapter: ${error.message || 'Unknown error'}`);
+      }
     }
   }
 
