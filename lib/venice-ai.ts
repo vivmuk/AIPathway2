@@ -157,7 +157,7 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.7,
-        max_completion_tokens: 4000,
+        max_completion_tokens: 8000, // Increased to handle comprehensive chapter content
         response_format: {
           type: 'json_schema',
           json_schema: {
@@ -266,6 +266,20 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
           throw new Error('Empty response from Venice AI');
         }
         
+        // Check if JSON appears incomplete (common truncation patterns)
+        const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+        const trimmedContent = contentStr.trim();
+        
+        // Check for incomplete JSON (missing closing braces)
+        const openBraces = (trimmedContent.match(/\{/g) || []).length;
+        const closeBraces = (trimmedContent.match(/\}/g) || []).length;
+        const openBrackets = (trimmedContent.match(/\[/g) || []).length;
+        const closeBrackets = (trimmedContent.match(/\]/g) || []).length;
+        
+        if (openBraces > closeBraces || openBrackets > closeBrackets) {
+          throw new Error(`Incomplete JSON response: missing closing brackets. Open braces: ${openBraces}, Close braces: ${closeBraces}`);
+        }
+        
         const parsed = typeof content === 'string' ? JSON.parse(content) : content;
         
         // Handle null values properly (Venice can return null for optional fields)
@@ -283,7 +297,7 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
       } catch (parseError) {
         const errorMsg = parseError instanceof Error ? parseError.message : 'Invalid JSON';
         const contentPreview = typeof content === 'string' 
-          ? content.substring(0, 200) + (content.length > 200 ? '...' : '')
+          ? content.substring(0, 500) + (content.length > 500 ? '...' : '')
           : 'Non-string content';
         throw new Error(`Failed to parse chapter content: ${errorMsg}. Content preview: ${contentPreview}`);
       }
@@ -406,7 +420,7 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.7,
-        max_completion_tokens: 4000,
+        max_completion_tokens: 8000, // Increased to handle comprehensive chapter content
         response_format: {
           type: 'json_schema',
           json_schema: {
@@ -517,6 +531,20 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
           throw new Error('Empty response from Venice AI');
         }
         
+        // Check if JSON appears incomplete (common truncation patterns)
+        const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+        const trimmedContent = contentStr.trim();
+        
+        // Check for incomplete JSON (missing closing braces)
+        const openBraces = (trimmedContent.match(/\{/g) || []).length;
+        const closeBraces = (trimmedContent.match(/\}/g) || []).length;
+        const openBrackets = (trimmedContent.match(/\[/g) || []).length;
+        const closeBrackets = (trimmedContent.match(/\]/g) || []).length;
+        
+        if (openBraces > closeBraces || openBrackets > closeBrackets) {
+          throw new Error(`Incomplete JSON response: missing closing brackets. Open braces: ${openBraces}, Close braces: ${closeBraces}`);
+        }
+        
         const parsed = typeof content === 'string' ? JSON.parse(content) : content;
         
         // Handle null values properly (Venice can return null for optional fields)
@@ -534,7 +562,7 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
       } catch (parseError) {
         const errorMsg = parseError instanceof Error ? parseError.message : 'Invalid JSON';
         const contentPreview = typeof content === 'string' 
-          ? content.substring(0, 200) + (content.length > 200 ? '...' : '')
+          ? content.substring(0, 500) + (content.length > 500 ? '...' : '')
           : 'Non-string content';
         throw new Error(`Failed to parse chapter content: ${errorMsg}. Content preview: ${contentPreview}`);
       }

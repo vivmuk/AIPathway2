@@ -119,11 +119,35 @@ export class CourseGenerator {
           estimatedTimeRemaining: Math.ceil(remainingChapters * estimatedMinutesPerChapter),
         });
 
-        // Generate chapter content
-        const content = await veniceAI.generateChapterContent(
-          chapter,
-          request.jobDescription || request.internalRole || ''
-        );
+        // Generate chapter content with retry logic for incomplete responses
+        let content;
+        let retries = 0;
+        const maxRetries = 2;
+        
+        while (retries <= maxRetries) {
+          try {
+            content = await veniceAI.generateChapterContent(
+              chapter,
+              request.jobDescription || request.internalRole || ''
+            );
+            break; // Success, exit retry loop
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const isIncompleteError = errorMessage.includes('Incomplete') || 
+                                     errorMessage.includes('Unexpected end of JSON') ||
+                                     errorMessage.includes('missing closing brackets');
+            
+            if (isIncompleteError && retries < maxRetries) {
+              retries++;
+              // Wait a bit before retrying
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              continue;
+            } else {
+              // Either not an incomplete error or max retries reached
+              throw error;
+            }
+          }
+        }
 
         course.chapters[i].content = content;
         coursesStore.set(courseId, course);
