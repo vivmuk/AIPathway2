@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch latest updates/advances in the space
     let latestUpdates: NewsItem[] = [];
+    let updatesSummary = '';
     try {
       console.log('Fetching latest updates for:', learningGoal);
       latestUpdates = await veniceAI.fetchLatestUpdates(
@@ -53,6 +54,19 @@ export async function POST(request: NextRequest) {
         roleContext || learningGoal
       );
       console.log(`Found ${latestUpdates.length} latest updates`);
+      
+      // Generate summary of latest updates using Venice AI
+      if (latestUpdates.length > 0) {
+        try {
+          console.log('Generating summary of latest updates');
+          updatesSummary = await veniceAI.generateUpdatesSummary(
+            learningGoal,
+            latestUpdates
+          );
+        } catch (error) {
+          console.warn('Failed to generate updates summary (non-critical):', error);
+        }
+      }
     } catch (error) {
       console.warn('Failed to fetch latest updates (non-critical):', error);
       // Continue without updates - don't fail the whole request
@@ -64,6 +78,7 @@ export async function POST(request: NextRequest) {
         title: learningGoal,
         content: chapterContent,
         latestNews: latestUpdates,
+        updatesSummary: updatesSummary,
         createdAt: new Date().toISOString(),
       },
     });

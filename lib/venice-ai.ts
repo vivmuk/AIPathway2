@@ -122,19 +122,32 @@ For each chapter provide:
     roleContext: string
   ): Promise<ChapterContent> {
     const userPrompt = `
-Generate comprehensive content for this chapter:
+Generate comprehensive content for this chapter teaching HOW TO APPLY AI:
 
 Chapter: ${chapter.title}
 Learning Objectives: ${chapter.objectives.join(', ')}
 Key Topics: ${chapter.topics.join(', ')}
 Role Context: ${roleContext}
 
-Create engaging, practical content that:
-1. Starts with a real-world scenario from this role
-2. Explains concepts clearly with role-specific examples
-3. Includes interactive elements and exercises
-4. Provides actionable takeaways
-5. Suggests immediate applications in daily work`;
+CRITICAL: Focus on teaching HOW TO APPLY AI tools and techniques, not just describing concepts.
+
+The content must:
+1. Start with an engaging opening scenario showing a real work challenge that can be solved with AI
+2. Explain SPECIFIC AI tools, models, or techniques that apply to this situation
+3. Show step-by-step HOW to implement AI solutions (not just what they are)
+4. Include hands-on exercises where users actually use AI tools
+5. Provide specific AI prompts, workflows, or code examples
+6. Demonstrate immediate AI applications they can use today
+
+Focus on:
+- Which AI tools/models/platforms to use for this chapter topic
+- How to set up and configure AI for this use case
+- Step-by-step implementation guides with specific examples
+- Real AI prompts or code snippets they can copy and use
+- How to integrate AI into existing workflows
+- Measuring and optimizing AI results
+
+Make it immediately actionable with specific AI tools and techniques.`;
 
     try {
       const response = await this.client.post('/chat/completions', {
@@ -309,19 +322,30 @@ Provide 3-5 most relevant updates with source links.`;
     experienceLevel: string = 'intermediate'
   ): Promise<ChapterContent> {
     const userPrompt = `
-Create a comprehensive chapter about: "${learningGoal}"
+Create a comprehensive chapter teaching how to APPLY AI to: "${learningGoal}"
 
 ${roleContext ? `Role/Work Context: ${roleContext}` : ''}
 Experience Level: ${experienceLevel}
 
-Generate engaging, practical content that:
-1. Starts with a real-world scenario
-2. Explains concepts clearly with examples
-3. Includes interactive exercises
-4. Provides actionable takeaways
-5. Suggests immediate applications
+CRITICAL: Focus on teaching HOW TO APPLY AI tools and techniques, not just describing concepts.
 
-Make it practical and immediately applicable.`;
+Generate engaging, practical content that:
+1. Starts with a real-world scenario showing a challenge that can be solved with AI
+2. Explains SPECIFIC AI tools, models, or techniques that apply to this situation
+3. Shows step-by-step HOW to implement AI solutions (not just what they are)
+4. Includes hands-on exercises where users actually use AI tools
+5. Provides specific AI prompts, workflows, or code examples
+6. Demonstrates immediate AI applications they can use today
+
+The content must teach practical AI application skills. Focus on:
+- Which AI tools/models/platforms to use
+- How to set up and configure AI for this use case
+- Step-by-step implementation guides
+- Real AI prompts or code snippets
+- How to integrate AI into existing workflows
+- Measuring and optimizing AI results
+
+Make it immediately actionable with specific AI tools and techniques.`;
 
     try {
       console.log('Calling Venice AI for single chapter:', {
@@ -447,6 +471,59 @@ Make it practical and immediately applicable.`;
       } else {
         throw new Error(`Failed to generate chapter: ${error.message || 'Unknown error'}`);
       }
+    }
+  }
+
+  /**
+   * Generate a summary of latest updates using Mistral model with web search
+   */
+  async generateUpdatesSummary(
+    learningGoal: string,
+    updates: NewsItem[]
+  ): Promise<string> {
+    const updatesText = updates.map((update, index) => 
+      `${index + 1}. ${update.title}: ${update.summary}${update.source ? ` (Source: ${update.source})` : ''}`
+    ).join('\n\n');
+
+    const summaryPrompt = `
+Summarize the latest advances and developments related to "${learningGoal}" based on these recent updates:
+
+${updatesText}
+
+Provide a comprehensive summary (2-3 paragraphs) that:
+1. Highlights the most significant recent developments
+2. Explains how these advances impact the field
+3. Identifies emerging trends or patterns
+4. Notes practical implications for practitioners
+
+Make it concise but informative, focusing on actionable insights.`;
+
+    try {
+      const response = await this.client.post('/chat/completions', {
+        model: VENICE_CONFIG.MODELS.RESEARCH,
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are an expert at synthesizing information and creating clear, actionable summaries. Focus on practical implications and trends.' 
+          },
+          { role: 'user', content: summaryPrompt },
+        ],
+        temperature: 0.5,
+        max_completion_tokens: 1000,
+        venice_parameters: {
+          enable_web_search: true,
+          enable_web_scraping: true,
+          enable_web_citations: false,
+        },
+      }, {
+        timeout: VENICE_CONFIG.TIMEOUTS.RESEARCH,
+      });
+
+      const summary = response.data.choices[0].message.content;
+      return summary || '';
+    } catch (error) {
+      console.error('Error generating updates summary:', error);
+      return '';
     }
   }
 

@@ -41,6 +41,7 @@ interface ChapterData {
     }>;
   };
   latestNews?: NewsItem[];
+  updatesSummary?: string;
   createdAt: string;
 }
 
@@ -62,6 +63,36 @@ function SingleChapterContent() {
     }
     setLoading(false);
   }, [searchParams]);
+
+  const handleDownload = async () => {
+    if (!chapterData) return;
+    
+    try {
+      const chapterId = encodeURIComponent(chapterData.title);
+      const response = await fetch(`/api/chapters/${chapterId}/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chapterData }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to export chapter');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chapter-${chapterData.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.html`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading chapter:', error);
+      alert('Failed to download chapter. Please try again.');
+    }
+  };
 
   if (loading) {
     return (
@@ -236,6 +267,17 @@ function SingleChapterContent() {
               <TrendingUp className="w-6 h-6 text-indigo-600" />
               <h2 className="text-2xl font-bold text-slate-800">Latest Advances in This Space</h2>
             </div>
+            
+            {/* Summary of Latest Updates */}
+            {chapterData.updatesSummary && (
+              <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-r-lg">
+                <h3 className="font-semibold text-slate-800 mb-2">Summary of Recent Developments</h3>
+                <ReactMarkdown className="text-slate-700 prose prose-sm max-w-none">
+                  {chapterData.updatesSummary}
+                </ReactMarkdown>
+              </div>
+            )}
+            
             <p className="text-slate-600 mb-6 text-sm">
               Recent developments, tools, and breakthroughs related to your learning topic
             </p>
@@ -271,6 +313,17 @@ function SingleChapterContent() {
             </div>
           </div>
         )}
+
+        {/* Download Button */}
+        <div className="flex justify-center mt-6 mb-6">
+          <button
+            onClick={() => handleDownload()}
+            className="btn-primary flex items-center space-x-2"
+          >
+            <Download className="w-5 h-5" />
+            <span>Download as HTML</span>
+          </button>
+        </div>
 
         {/* Footer CTA */}
         <div className="card mt-6 text-center bg-gradient-to-r from-slate-700 to-slate-800 text-white">
