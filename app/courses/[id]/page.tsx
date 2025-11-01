@@ -208,7 +208,7 @@ export default function CourseViewerPage() {
             <div className="space-y-2">
               {course.chapters.map((chapter, index) => (
                 <button
-                  key={chapter.number}
+                  key={chapter.number || index}
                   onClick={() => setCurrentChapterIndex(index)}
                   className={`w-full text-left p-4 rounded-xl transition-all ${
                     index === currentChapterIndex
@@ -220,7 +220,7 @@ export default function CourseViewerPage() {
                     <span className={`text-xs font-semibold ${
                       index === currentChapterIndex ? 'text-blue-600' : 'text-gray-500'
                     }`}>
-                      Chapter {chapter.number}
+                      Chapter {chapter.number || index + 1}
                     </span>
                     {index < currentChapterIndex && (
                       <CheckCircle2 className="w-4 h-4 text-green-600" />
