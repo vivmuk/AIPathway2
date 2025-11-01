@@ -147,7 +147,13 @@ Focus on:
 - How to integrate AI into existing workflows
 - Measuring and optimizing AI results
 
-Make it immediately actionable with specific AI tools and techniques.`;
+Make it immediately actionable with specific AI tools and techniques.
+
+Additionally, include a comprehensive list of AI concepts, skills, and technologies that someone needs to learn to upskill in this area. For each concept, explain:
+- What it is and why it's important
+- Skill level required (beginner/intermediate/advanced)
+- Specific tools or platforms related to it
+- How it applies to the learning goal`;
 
     try {
       const response = await this.client.post('/chat/completions', {
@@ -238,9 +244,36 @@ Make it immediately actionable with specific AI tools and techniques.`;
       });
 
       const content = response.data.choices[0].message.content;
-      return typeof content === 'string' ? JSON.parse(content) : content;
+      
+      // Handle potential parsing errors
+      try {
+        const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+        // Ensure ai_concepts_to_learn exists even if not returned
+        if (!parsed.ai_concepts_to_learn) {
+          parsed.ai_concepts_to_learn = [];
+        }
+        return parsed;
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Raw content:', content);
+        throw new Error(`Failed to parse chapter content: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+      }
     } catch (error: any) {
       console.error('Error generating chapter content:', error);
+      
+      // Enhanced error logging for Venice API responses
+      if (error.response) {
+        console.error('Venice API Error Response:', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: JSON.stringify(error.response.data, null, 2),
+        });
+        
+        // Check for validation errors
+        if (error.response.data?.issues || error.response.data?.details) {
+          console.error('Schema validation issues:', JSON.stringify(error.response.data.issues || error.response.data.details, null, 2));
+        }
+      }
       
       // Provide more detailed error information
       if (error.response) {
@@ -345,7 +378,13 @@ The content must teach practical AI application skills. Focus on:
 - How to integrate AI into existing workflows
 - Measuring and optimizing AI results
 
-Make it immediately actionable with specific AI tools and techniques.`;
+Make it immediately actionable with specific AI tools and techniques.
+
+Additionally, include a comprehensive list of AI concepts, skills, and technologies that someone needs to learn to upskill in this area. For each concept, explain:
+- What it is and why it's important
+- Skill level required (beginner/intermediate/advanced)
+- Specific tools or platforms related to it
+- How it applies to the learning goal`;
 
     try {
       console.log('Calling Venice AI for single chapter:', {
@@ -432,6 +471,27 @@ Make it immediately actionable with specific AI tools and techniques.`;
                     additionalProperties: false,
                   },
                 },
+                ai_concepts_to_learn: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      concept: { type: 'string' },
+                      description: { type: 'string' },
+                      why_important: { type: 'string' },
+                      skill_level: {
+                        type: 'string',
+                        enum: ['beginner', 'intermediate', 'advanced'],
+                      },
+                      tools_or_platforms: {
+                        type: 'array',
+                        items: { type: 'string' },
+                      },
+                    },
+                    required: ['concept', 'description', 'why_important', 'skill_level'],
+                    additionalProperties: false,
+                  },
+                },
               },
               required: ['opening_scenario', 'core_concepts', 'practical_exercises', 'key_takeaways', 'action_items'],
               additionalProperties: false,
@@ -451,9 +511,31 @@ Make it immediately actionable with specific AI tools and techniques.`;
       });
 
       const content = response.data.choices[0].message.content;
-      return typeof content === 'string' ? JSON.parse(content) : content;
+      
+      // Handle potential parsing errors
+      try {
+        const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+        // Ensure ai_concepts_to_learn exists even if not returned
+        if (!parsed.ai_concepts_to_learn) {
+          parsed.ai_concepts_to_learn = [];
+        }
+        return parsed;
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Raw content:', content);
+        throw new Error(`Failed to parse chapter content: ${parseError instanceof Error ? parseError.message : 'Invalid JSON'}`);
+      }
     } catch (error: any) {
       console.error('Error generating single chapter:', error);
+      
+      // Enhanced error logging for Venice API responses
+      if (error.response) {
+        console.error('Venice API Error Response:', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+        });
+      }
       
       // Provide more detailed error information
       if (error.response) {

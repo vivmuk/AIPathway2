@@ -68,6 +68,7 @@ function generateChapterHTML(chapterData: any): string {
     ${renderPracticalExercises(content.practical_exercises)}
     ${renderKeyTakeaways(content.key_takeaways)}
     ${renderActionItems(content.action_items)}
+    ${content.ai_concepts_to_learn && content.ai_concepts_to_learn.length > 0 ? renderAIConcepts(content.ai_concepts_to_learn) : ''}
     ${latestNews && latestNews.length > 0 ? renderLatestUpdates(latestNews, updatesSummary) : ''}
   </div>
 </body>
@@ -181,6 +182,42 @@ function renderActionItems(items: any[]): string {
               <p class="action-task">${escapeHtml(item.task)}</p>
               <p class="action-timeline">Timeline: ${escapeHtml(item.timeline)}</p>
             </div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderAIConcepts(concepts: any[]): string {
+  if (!concepts || concepts.length === 0) return '';
+  
+  return `
+    <section class="section">
+      <h2 class="section-title">AI Concepts to Learn for Upskilling</h2>
+      <p class="section-intro">Master these AI concepts, skills, and technologies to excel in this area:</p>
+      <div class="ai-concepts-grid">
+        ${concepts.map((concept, index) => `
+          <div class="ai-concept-card">
+            <div class="concept-header">
+              <h3>${escapeHtml(concept.concept)}</h3>
+              <span class="skill-badge ${concept.skill_level}">${concept.skill_level}</span>
+            </div>
+            <p class="concept-description">${escapeHtml(concept.description)}</p>
+            <div class="why-important">
+              <strong>Why it's important:</strong>
+              <p>${escapeHtml(concept.why_important)}</p>
+            </div>
+            ${concept.tools_or_platforms && concept.tools_or_platforms.length > 0 ? `
+              <div class="tools-platforms">
+                <strong>Tools/Platforms:</strong>
+                <div class="tools-list">
+                  ${concept.tools_or_platforms.map((tool: string) => 
+                    `<span class="tool-tag">${escapeHtml(tool)}</span>`
+                  ).join(' ')}
+                </div>
+              </div>
+            ` : ''}
           </div>
         `).join('')}
       </div>
@@ -450,6 +487,91 @@ function getChapterStyles(): string {
     .news-date {
       font-size: 0.85em;
       color: #94a3b8;
+    }
+    .section-intro {
+      color: #475569;
+      margin-bottom: 25px;
+      font-size: 1.05em;
+    }
+    .ai-concepts-grid {
+      display: grid;
+      gap: 20px;
+    }
+    .ai-concept-card {
+      padding: 20px;
+      background: #f8fafc;
+      border-left: 4px solid #4f46e5;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .concept-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 15px;
+    }
+    .concept-header h3 {
+      color: #4f46e5;
+      font-size: 1.3em;
+      margin: 0;
+    }
+    .skill-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+    .skill-badge.beginner {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .skill-badge.intermediate {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .skill-badge.advanced {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .concept-description {
+      color: #475569;
+      margin-bottom: 15px;
+      line-height: 1.7;
+    }
+    .why-important {
+      margin-top: 15px;
+      padding: 15px;
+      background: white;
+      border-left: 3px solid #10b981;
+      border-radius: 4px;
+    }
+    .why-important strong {
+      color: #1e293b;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .tools-platforms {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .tools-platforms strong {
+      color: #1e293b;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .tools-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tool-tag {
+      display: inline-block;
+      padding: 6px 14px;
+      background: #e2e8f0;
+      border-radius: 16px;
+      font-size: 0.9em;
+      color: #475569;
     }
     @media print {
       body {

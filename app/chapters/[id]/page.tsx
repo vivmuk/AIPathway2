@@ -39,6 +39,13 @@ interface ChapterData {
       task: string;
       timeline: string;
     }>;
+    ai_concepts_to_learn?: Array<{
+      concept: string;
+      description: string;
+      why_important: string;
+      skill_level: string;
+      tools_or_platforms?: string[];
+    }>;
   };
   latestNews?: NewsItem[];
   updatesSummary?: string;
@@ -69,10 +76,18 @@ function SingleChapterContent() {
     
     try {
       const chapterId = encodeURIComponent(chapterData.title);
+      // Ensure all data including latestNews is passed
+      const exportData = {
+        chapterData: {
+          ...chapterData,
+          latestNews: chapterData.latestNews || [],
+          updatesSummary: chapterData.updatesSummary || '',
+        },
+      };
       const response = await fetch(`/api/chapters/${chapterId}/export`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chapterData }),
+        body: JSON.stringify(exportData),
       });
 
       if (!response.ok) {
@@ -241,6 +256,49 @@ function SingleChapterContent() {
             ))}
           </ul>
         </div>
+
+        {/* AI Concepts to Learn */}
+        {chapterData.content?.ai_concepts_to_learn && chapterData.content.ai_concepts_to_learn.length > 0 && (
+          <div className="card mb-6">
+            <h2 className="text-2xl font-bold mb-4 text-slate-800">AI Concepts to Learn for Upskilling</h2>
+            <p className="text-slate-600 mb-6 text-sm">
+              Master these AI concepts, skills, and technologies to excel in this area
+            </p>
+            <div className="space-y-4">
+              {chapterData.content.ai_concepts_to_learn.map((concept, index) => (
+                <div key={index} className="border-l-4 border-indigo-500 pl-4 py-4 bg-slate-50 rounded-r-lg">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-slate-800">{concept.concept}</h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      concept.skill_level === 'beginner' ? 'bg-emerald-100 text-emerald-700' :
+                      concept.skill_level === 'intermediate' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {concept.skill_level}
+                    </span>
+                  </div>
+                  <p className="text-slate-600 text-sm mb-3">{concept.description}</p>
+                  <div className="bg-white p-3 rounded-lg border-l-3 border-emerald-500 mb-3">
+                    <p className="text-sm font-semibold text-slate-700 mb-1">Why it's important:</p>
+                    <p className="text-slate-600 text-sm">{concept.why_important}</p>
+                  </div>
+                  {concept.tools_or_platforms && concept.tools_or_platforms.length > 0 && (
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700 mb-2">Tools/Platforms:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {concept.tools_or_platforms.map((tool, toolIndex) => (
+                          <span key={toolIndex} className="px-3 py-1 bg-slate-200 rounded-full text-sm text-slate-700">
+                            {tool}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Action Items */}
         <div className="card mb-6">

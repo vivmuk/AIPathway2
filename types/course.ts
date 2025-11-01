@@ -44,7 +44,16 @@ export interface ChapterContent {
   practical_exercises: Exercise[];
   key_takeaways: string[];
   action_items: ActionItem[];
+  ai_concepts_to_learn?: AIConcept[];
   additional_resources?: Resource[];
+}
+
+export interface AIConcept {
+  concept: string;
+  description: string;
+  why_important: string;
+  skill_level: 'beginner' | 'intermediate' | 'advanced';
+  tools_or_platforms?: string[];
 }
 
 export interface OpeningScenario {
