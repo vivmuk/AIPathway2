@@ -157,7 +157,7 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.7,
-        max_completion_tokens: 8000, // Increased to handle comprehensive chapter content
+        max_completion_tokens: 20000, // Increased to handle comprehensive chapter content
         response_format: {
           type: 'json_schema',
           json_schema: {
@@ -420,7 +420,7 @@ Additionally, include a comprehensive list of AI concepts, skills, and technolog
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.7,
-        max_completion_tokens: 8000, // Increased to handle comprehensive chapter content
+        max_completion_tokens: 20000, // Increased to handle comprehensive chapter content
         response_format: {
           type: 'json_schema',
           json_schema: {
