@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { veniceAI } from '@/lib/venice-ai';
+import { NewsItem } from '@/types/course';
 
 // Set max duration to 10 minutes for deployment platforms
 export const maxDuration = 600;
@@ -31,11 +32,26 @@ export async function POST(request: NextRequest) {
       experienceLevel || 'intermediate'
     );
 
+    // Fetch latest updates/advances in the space
+    let latestUpdates: NewsItem[] = [];
+    try {
+      console.log('Fetching latest updates for:', learningGoal);
+      latestUpdates = await veniceAI.fetchLatestUpdates(
+        learningGoal,
+        roleContext || learningGoal
+      );
+      console.log(`Found ${latestUpdates.length} latest updates`);
+    } catch (error) {
+      console.warn('Failed to fetch latest updates (non-critical):', error);
+      // Continue without updates - don't fail the whole request
+    }
+
     return NextResponse.json({
       success: true,
       chapter: {
         title: learningGoal,
         content: chapterContent,
+        latestNews: latestUpdates,
         createdAt: new Date().toISOString(),
       },
     });

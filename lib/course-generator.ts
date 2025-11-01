@@ -148,9 +148,10 @@ export class CourseGenerator {
 
         // Fetch latest updates (non-critical, so continue on error)
         try {
+          const contextForNews = request.jobDescription || request.internalRole || '';
           const latestNews = await veniceAI.fetchLatestUpdates(
             chapter.title,
-            request.jobDescription
+            contextForNews
           );
           course.chapters[i].latestNews = latestNews;
         } catch (error) {

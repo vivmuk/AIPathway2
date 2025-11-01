@@ -1,9 +1,17 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Download, BookOpen, Loader2 } from 'lucide-react';
+import { ArrowLeft, Download, BookOpen, Loader2, TrendingUp, ExternalLink } from 'lucide-react';
 import { useState, useEffect, Suspense } from 'react';
 import ReactMarkdown from 'react-markdown';
+
+interface NewsItem {
+  title: string;
+  summary: string;
+  source?: string;
+  date: string;
+  relevance?: string;
+}
 
 interface ChapterData {
   title: string;
@@ -32,6 +40,7 @@ interface ChapterData {
       timeline: string;
     }>;
   };
+  latestNews?: NewsItem[];
   createdAt: string;
 }
 
@@ -203,7 +212,7 @@ function SingleChapterContent() {
         </div>
 
         {/* Action Items */}
-        <div className="card">
+        <div className="card mb-6">
           <h2 className="text-2xl font-bold mb-4 text-slate-800">Action Items</h2>
           <div className="space-y-3">
             {content.action_items.map((item, index) => (
@@ -219,6 +228,49 @@ function SingleChapterContent() {
             ))}
           </div>
         </div>
+
+        {/* Latest Updates & Advances */}
+        {chapterData.latestNews && chapterData.latestNews.length > 0 && (
+          <div className="card mb-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <TrendingUp className="w-6 h-6 text-indigo-600" />
+              <h2 className="text-2xl font-bold text-slate-800">Latest Advances in This Space</h2>
+            </div>
+            <p className="text-slate-600 mb-6 text-sm">
+              Recent developments, tools, and breakthroughs related to your learning topic
+            </p>
+            <div className="space-y-4">
+              {chapterData.latestNews.map((news, index) => (
+                <div key={index} className="border-l-4 border-indigo-500 pl-4 py-2">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-lg font-semibold text-slate-800">{news.title}</h3>
+                    {news.source && (
+                      <a
+                        href={news.source}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-1 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+                      >
+                        <span>Source</span>
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                  <p className="text-slate-600 text-sm mb-2">{news.summary}</p>
+                  {news.date && (
+                    <p className="text-xs text-slate-500">
+                      {new Date(news.date).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Footer CTA */}
         <div className="card mt-6 text-center bg-gradient-to-r from-slate-700 to-slate-800 text-white">

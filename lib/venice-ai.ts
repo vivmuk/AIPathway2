@@ -283,6 +283,7 @@ Provide 3-5 most relevant updates with source links.`;
         temperature: 0.5,
         venice_parameters: {
           enable_web_search: true,
+          enable_web_scraping: true,
           enable_web_citations: true,
           include_search_results_in_stream: false,
         },
