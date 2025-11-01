@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { courseGenerator } from '@/lib/course-generator';
+import { CourseGenerationStatus } from '@/types/course';
 
 export async function GET(
   request: NextRequest,
@@ -27,11 +28,20 @@ export async function GET(
     // If no status but course exists, create status from course
     if (course) {
       console.log(`[Status API] Course exists but no status record, creating from course state`);
-      const initialStatus = {
+      
+      // Determine status value first, then apply type assertion
+      let statusValue: 'completed' | 'error' | 'analyzing' = 'analyzing';
+      if (course.status === 'completed') {
+        statusValue = 'completed';
+      } else if (course.status === 'error') {
+        statusValue = 'error';
+      } else if (course.status === 'processing') {
+        statusValue = 'analyzing';
+      }
+      
+      const initialStatus: CourseGenerationStatus = {
         courseId,
-        status: (course.status === 'completed' ? 'completed' : 
-                course.status === 'error' ? 'error' : 
-                course.status === 'processing' ? 'analyzing' : 'analyzing') as const,
+        status: statusValue,
         progress: course.progress || 0,
       };
       console.log(`[Status API] Created initial status: ${initialStatus.status} (${initialStatus.progress}%)`);
