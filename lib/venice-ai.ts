@@ -606,12 +606,18 @@ Summarize the latest advances and developments related to "${learningGoal}" base
 ${updatesText}
 
 Provide a comprehensive summary (2-3 paragraphs) that:
-1. Highlights the most significant recent developments
-2. Explains how these advances impact the field
-3. Identifies emerging trends or patterns
-4. Notes practical implications for practitioners
+1. Highlights the most significant recent developments, especially GenAI applications
+2. Explains how Generative AI is being applied to this field/topic
+3. Identifies emerging trends, tools, or research breakthroughs
+4. Notes practical implications and how practitioners can leverage these advances
 
-Make it concise but informative, focusing on actionable insights.`;
+Focus on:
+- How GenAI is transforming this area
+- Latest research or model updates if this is a GenAI topic
+- Practical applications and tools available now
+- Trends that will impact the field
+
+Make it concise but informative, focusing on actionable insights and real-world applications.`;
 
     try {
       const response = await this.client.post('/chat/completions', {
