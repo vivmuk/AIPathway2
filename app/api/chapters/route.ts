@@ -7,6 +7,18 @@ export const maxDuration = 600;
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Venice API key is configured
+    if (!process.env.VENICE_API_KEY) {
+      console.error('VENICE_API_KEY is not set in environment variables');
+      return NextResponse.json(
+        {
+          error: 'Venice AI API key not configured',
+          details: 'Please set VENICE_API_KEY environment variable in Railway',
+        },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
     const { learningGoal, roleContext, experienceLevel } = body;
 
