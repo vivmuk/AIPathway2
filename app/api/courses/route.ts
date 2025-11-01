@@ -33,6 +33,13 @@ export async function POST(request: NextRequest) {
 
     // Start course generation
     const courseId = await courseGenerator.generateCourse(body);
+    
+    console.log(`[Courses API] Course created with ID: ${courseId}`);
+    
+    // Verify it was stored
+    const verifyStatus = courseGenerator.getStatus(courseId);
+    const verifyCourse = courseGenerator.getCourse(courseId);
+    console.log(`[Courses API] Verification - Status: ${!!verifyStatus}, Course: ${!!verifyCourse}`);
 
     return NextResponse.json({
       success: true,

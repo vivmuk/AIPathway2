@@ -11,6 +11,11 @@ export const VENICE_CONFIG = {
     CONTENT: 600000,    // 10 minutes - allows for comprehensive content generation
     RESEARCH: 600000,   // 10 minutes - allows for thorough web search
   },
+  // Test mode: limit to 3 chapters for local testing
+  // Set TEST_MODE=true in .env.local to enable test mode
+  // In production, TEST_MODE should be false or undefined to generate full 10 chapters
+  TEST_MODE: process.env.TEST_MODE === 'true',
+  TEST_MODE_CHAPTERS: 3, // Number of chapters to generate in test mode
 };
 
 export const VENICE_PROMPTS = {

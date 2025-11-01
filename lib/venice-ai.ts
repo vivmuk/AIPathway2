@@ -22,11 +22,18 @@ export class VeniceAIService {
     jobDescription: string,
     internalRole?: string
   ): Promise<CourseOutline> {
+    console.log(`[VeniceAI] === analyzeJobAndCreateOutline START ===`);
+    console.log(`[VeniceAI] Base URL: ${VENICE_CONFIG.BASE_URL}`);
+    console.log(`[VeniceAI] Model: ${VENICE_CONFIG.MODELS.REASONING}`);
+    console.log(`[VeniceAI] API Key configured: ${!!VENICE_CONFIG.API_KEY ? 'YES' : 'NO'}`);
+    console.log(`[VeniceAI] Test mode: ${VENICE_CONFIG.TEST_MODE}, Chapters: ${VENICE_CONFIG.TEST_MODE ? VENICE_CONFIG.TEST_MODE_CHAPTERS : 10}`);
+    
+    const chapterCount = VENICE_CONFIG.TEST_MODE ? VENICE_CONFIG.TEST_MODE_CHAPTERS : 10;
     const userPrompt = `
 Job Description: ${jobDescription}
 ${internalRole ? `Internal Role/Process: ${internalRole}` : ''}
 
-Create a comprehensive 10-chapter GenAI course outline that:
+Create a comprehensive ${chapterCount}-chapter GenAI course outline that:
 - Addresses specific tasks and responsibilities in this role
 - Progresses from AI fundamentals to advanced role-specific applications
 - Includes practical tools and techniques relevant to daily work
@@ -40,6 +47,10 @@ For each chapter provide:
 5. Why this matters for the role`;
 
     try {
+      console.log(`[VeniceAI] Making POST request to ${VENICE_CONFIG.BASE_URL}/chat/completions`);
+      console.log(`[VeniceAI] Request payload size: ${JSON.stringify(userPrompt).length} chars`);
+      
+      const startTime = Date.now();
       const response = await this.client.post('/chat/completions', {
         model: VENICE_CONFIG.MODELS.REASONING,
         messages: [
@@ -101,9 +112,42 @@ For each chapter provide:
         timeout: VENICE_CONFIG.TIMEOUTS.REASONING,
       });
 
+      const elapsed = Date.now() - startTime;
+      console.log(`[VeniceAI] ✅ Response received in ${(elapsed / 1000).toFixed(2)}s`);
+      console.log(`[VeniceAI] Response status: ${response.status}`);
+      console.log(`[VeniceAI] Response has choices: ${!!response.data?.choices}`);
+      
+      if (!response.data?.choices?.[0]?.message?.content) {
+        console.error(`[VeniceAI] ❌ No content in response:`, JSON.stringify(response.data, null, 2));
+        throw new Error('No content in Venice AI response');
+      }
+
       const content = response.data.choices[0].message.content;
-      return typeof content === 'string' ? JSON.parse(content) : content;
-    } catch (error) {
+      console.log(`[VeniceAI] Content length: ${typeof content === 'string' ? content.length : 'not a string'}`);
+      const outline = typeof content === 'string' ? JSON.parse(content) : content;
+      
+      // In test mode, limit chapters to TEST_MODE_CHAPTERS
+      if (VENICE_CONFIG.TEST_MODE && outline.chapters && outline.chapters.length > VENICE_CONFIG.TEST_MODE_CHAPTERS) {
+        outline.chapters = outline.chapters.slice(0, VENICE_CONFIG.TEST_MODE_CHAPTERS);
+      }
+      
+      console.log(`[VeniceAI] ✅ Outline parsed successfully`);
+      return outline;
+    } catch (error: any) {
+      console.error(`[VeniceAI] ❌ ERROR in analyzeJobAndCreateOutline:`);
+      console.error(`[VeniceAI] Error type: ${error?.constructor?.name || typeof error}`);
+      console.error(`[VeniceAI] Error message: ${error?.message || String(error)}`);
+      
+      if (error.response) {
+        console.error(`[VeniceAI] Response status: ${error.response.status}`);
+        console.error(`[VeniceAI] Response data:`, JSON.stringify(error.response.data, null, 2));
+      } else if (error.request) {
+        console.error(`[VeniceAI] No response received - request timeout or network error`);
+        console.error(`[VeniceAI] Request config:`, JSON.stringify(error.config || {}, null, 2));
+      } else {
+        console.error(`[VeniceAI] Error stack:`, error.stack);
+      }
+      
       throw new Error(`Failed to generate course outline: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
