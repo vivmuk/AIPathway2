@@ -3,7 +3,7 @@ export const VENICE_CONFIG = {
   BASE_URL: process.env.VENICE_BASE_URL || 'https://api.venice.ai/api/v1',
   MODELS: {
     REASONING: process.env.VENICE_MODEL_REASONING || 'qwen3-235b',
-    CONTENT: process.env.VENICE_MODEL_CONTENT || 'zai-org-glm-4-6',
+    CONTENT: process.env.VENICE_MODEL_CONTENT || 'mistral-31-24b', // Using Venice Medium which supports response_schema
     RESEARCH: process.env.VENICE_MODEL_RESEARCH || 'mistral-31-24b',
   },
   TIMEOUTS: {

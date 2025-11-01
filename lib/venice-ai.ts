@@ -6,6 +6,11 @@ export class VeniceAIService {
   private client: AxiosInstance;
 
   constructor() {
+    // Validate API key is set
+    if (!VENICE_CONFIG.API_KEY) {
+      console.warn('Venice AI API key is not set. Please set VENICE_API_KEY environment variable.');
+    }
+
     this.client = axios.create({
       baseURL: VENICE_CONFIG.BASE_URL,
       headers: {
@@ -139,7 +144,7 @@ Create engaging, practical content that:
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.7,
-        max_tokens: 4000,
+        max_completion_tokens: 4000,
         response_format: {
           type: 'json_schema',
           json_schema: {
@@ -318,14 +323,21 @@ Generate engaging, practical content that:
 Make it practical and immediately applicable.`;
 
     try {
-      const response = await this.client.post('/chat/completions', {
+      console.log('Calling Venice AI for single chapter:', {
+        model: VENICE_CONFIG.MODELS.CONTENT,
+        baseURL: VENICE_CONFIG.BASE_URL,
+        hasApiKey: !!VENICE_CONFIG.API_KEY,
+        learningGoalLength: learningGoal.length,
+      });
+
+      const requestPayload = {
         model: VENICE_CONFIG.MODELS.CONTENT,
         messages: [
           { role: 'system', content: VENICE_PROMPTS.SYSTEM_CONTENT },
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.7,
-        max_tokens: 4000,
+        max_completion_tokens: 4000,
         response_format: {
           type: 'json_schema',
           json_schema: {
@@ -401,8 +413,16 @@ Make it practical and immediately applicable.`;
             },
           },
         },
-      }, {
+      };
+
+      const response = await this.client.post('/chat/completions', requestPayload, {
         timeout: VENICE_CONFIG.TIMEOUTS.CONTENT,
+      });
+
+      console.log('Venice AI response received:', {
+        status: response.status,
+        hasChoices: !!response.data?.choices,
+        choiceCount: response.data?.choices?.length,
       });
 
       const content = response.data.choices[0].message.content;
