@@ -106,8 +106,30 @@ export default function CourseViewerPage() {
     );
   }
 
+  // Safety checks
+  if (!course || !course.chapters || course.chapters.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Course not found or has no chapters yet.</p>
+        </div>
+      </div>
+    );
+  }
+
   const currentChapter = course.chapters[currentChapterIndex];
   const totalChapters = course.chapters.length;
+
+  // Ensure currentChapter exists
+  if (!currentChapter) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Chapter not found.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -227,17 +249,17 @@ export default function CourseViewerPage() {
               <div className="flex items-start justify-between mb-6">
                 <div className="flex-1">
                   <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-sm font-semibold mb-4">
-                    Chapter {currentChapter.number} of {totalChapters}
+                    Chapter {currentChapter.number || currentChapterIndex + 1} of {totalChapters}
                   </div>
-                  <h1 className="text-4xl font-bold mb-4">{currentChapter.title}</h1>
+                  <h1 className="text-4xl font-bold mb-4">{currentChapter.title || 'Untitled Chapter'}</h1>
                   <div className="flex flex-wrap items-center gap-4 text-gray-600">
                     <div className="flex items-center">
                       <Clock className="w-4 h-4 mr-2" />
-                      <span>{currentChapter.estimated_time_minutes} minutes</span>
+                      <span>{currentChapter.estimated_time_minutes || 0} minutes</span>
                     </div>
                     <div className="flex items-center">
                       <BookOpen className="w-4 h-4 mr-2" />
-                      <span>{currentChapter.objectives.length} objectives</span>
+                      <span>{(currentChapter.objectives || []).length} objectives</span>
                     </div>
                   </div>
                 </div>
