@@ -14,20 +14,21 @@ let lastFileModTime: number = 0;
 
 function readStorage(forceReload = false): DevStorage {
   // Check if file was modified (for multi-process scenarios)
+  let currentFileModTime = 0;
   try {
     if (fs.existsSync(STORAGE_FILE)) {
       const stats = fs.statSync(STORAGE_FILE);
-      const fileModTime = stats.mtimeMs;
+      currentFileModTime = stats.mtimeMs;
       
       // If cache exists and file hasn't changed, return cache
-      if (cachedStorage && !forceReload && fileModTime === lastFileModTime) {
-        return cachedStorage;
+      if (cachedStorage && !forceReload && currentFileModTime === lastFileModTime) {
+        return cachedStorage as DevStorage;
       }
       
-      lastFileModTime = fileModTime;
+      lastFileModTime = currentFileModTime;
     } else if (cachedStorage && !forceReload) {
       // File doesn't exist but we have cache - return it
-      return cachedStorage;
+      return cachedStorage as DevStorage;
     }
   } catch (error) {
     // If stat fails, try to read anyway
@@ -36,7 +37,7 @@ function readStorage(forceReload = false): DevStorage {
   try {
     if (fs.existsSync(STORAGE_FILE)) {
       const data = fs.readFileSync(STORAGE_FILE, 'utf8');
-      const parsed = JSON.parse(data);
+      const parsed: any = JSON.parse(data);
       // Convert date strings back to Date objects
       if (parsed.courses) {
         Object.values(parsed.courses).forEach((course: any) => {
@@ -45,15 +46,24 @@ function readStorage(forceReload = false): DevStorage {
           if (course.metadata?.lastModified) course.metadata.lastModified = new Date(course.metadata.lastModified);
         });
       }
-      cachedStorage = parsed;
-      return cachedStorage;
+      // Ensure parsed data matches DevStorage structure
+      const storage: DevStorage = {
+        courses: parsed.courses || {},
+        statuses: parsed.statuses || {},
+      };
+      cachedStorage = storage;
+      if (currentFileModTime > 0) {
+        lastFileModTime = currentFileModTime;
+      }
+      return storage;
     }
   } catch (error) {
     console.error(`[DevStorage] Error reading storage file:`, error);
   }
-  cachedStorage = { courses: {}, statuses: {} };
+  const emptyStorage: DevStorage = { courses: {}, statuses: {} };
+  cachedStorage = emptyStorage;
   lastFileModTime = 0;
-  return cachedStorage;
+  return emptyStorage;
 }
 
 function writeStorage(storage: DevStorage) {
