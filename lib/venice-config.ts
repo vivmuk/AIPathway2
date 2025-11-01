@@ -7,13 +7,9 @@ export const VENICE_CONFIG = {
     RESEARCH: process.env.VENICE_MODEL_RESEARCH || 'mistral-31-24b',
   },
   TIMEOUTS: {
-    REASONING: 90000,  // 90 seconds
-    CONTENT: 120000,   // 120 seconds
-    RESEARCH: 60000,   // 60 seconds
-  },
-  RATE_LIMITS: {
-    REQUESTS_PER_MINUTE: 10,
-    REQUESTS_PER_HOUR: 100,
+    REASONING: 600000,  // 10 minutes - allows for complex analysis
+    CONTENT: 600000,    // 10 minutes - allows for comprehensive content generation
+    RESEARCH: 600000,   // 10 minutes - allows for thorough web search
   },
 };
 

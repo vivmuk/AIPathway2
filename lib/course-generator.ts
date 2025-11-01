@@ -86,10 +86,12 @@ export class CourseGenerator {
       if (!course) throw new Error('Course not found');
 
       // Step 1: Analyze job and create outline (0-20%)
-      this.updateStatus(courseId, 'analyzing', 5);
+      this.updateStatus(courseId, 'analyzing', 5, {
+        estimatedTimeRemaining: 10, // 10 minutes total estimate
+      });
 
       const outline = await veniceAI.analyzeJobAndCreateOutline(
-        request.jobDescription,
+        request.jobDescription || request.internalRole || '',
         request.internalRole
       );
 
@@ -97,7 +99,10 @@ export class CourseGenerator {
       course.chapters = outline.chapters;
       coursesStore.set(courseId, course);
 
-      this.updateStatus(courseId, 'planning', 20);
+      this.updateStatus(courseId, 'planning', 20, {
+        totalChapters: outline.chapters.length,
+        estimatedTimeRemaining: 9, // ~9 minutes remaining
+      });
 
       // Step 2: Generate content for each chapter (20-80%)
       const totalChapters = outline.chapters.length;
@@ -106,33 +111,40 @@ export class CourseGenerator {
         const chapter = outline.chapters[i];
         const progress = 20 + (60 * ((i + 1) / totalChapters));
 
+        // Estimate: 1-2 minutes per chapter for content generation
+        const estimatedMinutesPerChapter = 1.5; // 1.5 minutes per chapter
+        const remainingChapters = totalChapters - i;
         this.updateStatus(courseId, 'generating', Math.floor(progress), {
           currentChapter: i + 1,
           totalChapters,
-          estimatedTimeRemaining: Math.ceil((totalChapters - i - 1) * 30), // 30 seconds per chapter
+          estimatedTimeRemaining: Math.ceil(remainingChapters * estimatedMinutesPerChapter),
         });
 
         // Generate chapter content
         const content = await veniceAI.generateChapterContent(
           chapter,
-          request.jobDescription
+          request.jobDescription || request.internalRole || ''
         );
 
         course.chapters[i].content = content;
         coursesStore.set(courseId, course);
-
-        // Small delay to avoid rate limiting
-        await this.sleep(1000);
       }
 
       // Step 3: Enrich with latest news (80-95%)
-      this.updateStatus(courseId, 'enriching', 80);
+      this.updateStatus(courseId, 'enriching', 80, {
+        estimatedTimeRemaining: Math.ceil(totalChapters * 0.5), // ~30 seconds per chapter for news, convert to minutes
+      });
 
       for (let i = 0; i < totalChapters; i++) {
         const chapter = course.chapters[i];
         const progress = 80 + (15 * ((i + 1) / totalChapters));
+        const remainingChapters = totalChapters - i;
 
-        this.updateStatus(courseId, 'enriching', Math.floor(progress));
+        this.updateStatus(courseId, 'enriching', Math.floor(progress), {
+          currentChapter: i + 1,
+          totalChapters,
+          estimatedTimeRemaining: Math.max(1, Math.ceil(remainingChapters * 0.5)), // At least 1 minute
+        });
 
         // Fetch latest updates (non-critical, so continue on error)
         try {
@@ -147,7 +159,6 @@ export class CourseGenerator {
         }
 
         coursesStore.set(courseId, course);
-        await this.sleep(500);
       }
 
       // Step 4: Finalize (95-100%)

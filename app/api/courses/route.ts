@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { courseGenerator } from '@/lib/course-generator';
 import { CourseGenerationRequest } from '@/types/course';
 
+// Set max duration to 10 minutes for deployment platforms
+export const maxDuration = 600;
+
 export async function POST(request: NextRequest) {
   try {
     const body: CourseGenerationRequest = await request.json();

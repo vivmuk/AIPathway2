@@ -269,26 +269,43 @@ export default function CreateCoursePage() {
                   </div>
                 )}
 
-                {/* Submit Button */}
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button
-                    type="submit"
-                    disabled={isLoading || !isFormValid()}
-                    className="btn-primary flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Creating Your Course...
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="w-5 h-5 mr-2" />
-                        Generate Course
-                      </>
-                    )}
-                  </button>
+              {/* Time Estimate Warning */}
+              <div className="bg-slate-50 border-2 border-slate-200 rounded-lg p-6 mb-6">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-slate-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white text-xs font-bold">⏱</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800 mb-1">Generation Time: Up to 10 minutes</p>
+                    <p className="text-sm text-slate-600">
+                      Our AI is creating a comprehensive, personalized course tailored to your specific role. 
+                      This process involves deep analysis, content generation, and enrichment with the latest industry updates. 
+                      Please be patient - we're crafting something truly valuable for you!
+                    </p>
+                  </div>
                 </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  type="submit"
+                  disabled={isLoading || !isFormValid()}
+                  className="btn-primary flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Creating Your Course...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-5 h-5 mr-2" />
+                      Generate Course
+                    </>
+                  )}
+                </button>
+              </div>
 
                 {/* Info Cards */}
                 <div className="grid md:grid-cols-3 gap-4 mt-8">
