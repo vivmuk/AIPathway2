@@ -108,7 +108,7 @@ export default function ProgressPage() {
       case 'planning':
         return {
           title: 'Step 2: Planning Your Curriculum',
-          description: 'Creating a personalized 10-chapter learning path structured for optimal learning progression',
+          description: 'Creating a personalized 5-chapter learning path structured for optimal learning progression',
           detailedSteps: [
             'Designing chapter structure',
             'Sequencing learning objectives',
@@ -121,7 +121,7 @@ export default function ProgressPage() {
         };
       case 'generating':
         return {
-          title: `Step 3: Generating Chapter ${status.currentChapter || 1} of ${status.totalChapters || 10}`,
+          title: `Step 3: Generating Chapter ${status.currentChapter || 1} of ${status.totalChapters || 5}`,
           description: 'GLM 4.6 is creating comprehensive, engaging content with practical exercises and real-world examples',
           detailedSteps: [
             `Writing chapter ${status.currentChapter || 1} content`,

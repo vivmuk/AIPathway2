@@ -406,7 +406,7 @@ function SingleChapterContent() {
         {/* Footer CTA */}
         <div className="card mt-6 text-center bg-gradient-to-r from-slate-700 to-slate-800 text-white">
           <h3 className="text-2xl font-bold mb-3">Want to learn more?</h3>
-          <p className="mb-4 opacity-90">Generate a full 10-chapter course tailored to your role</p>
+          <p className="mb-4 opacity-90">Generate a full 5-chapter course tailored to your role</p>
           <button
             onClick={() => router.push('/create')}
             className="bg-white text-slate-800 px-8 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300"

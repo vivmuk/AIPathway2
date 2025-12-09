@@ -160,35 +160,26 @@ export class CourseGenerator {
         estimatedTimeRemaining: 9,
       });
 
-      // Step 2: Generate content for each chapter (20-80%)
+      // Step 2: Generate content for each chapter concurrently (20-80%)
       const totalChapters = chaptersToProcess.length;
-      console.log(`[CourseGenerator] Step 2: Generating content for ${totalChapters} chapters...`);
+      console.log(`[CourseGenerator] Step 2: Generating content for ${totalChapters} chapters concurrently...`);
 
-      for (let i = 0; i < totalChapters; i++) {
-        const chapter = chaptersToProcess[i];
-        const progress = 20 + (60 * ((i + 1) / totalChapters));
+      this.updateStatus(courseId, 'generating', 20, {
+        totalChapters,
+        estimatedTimeRemaining: Math.ceil(totalChapters * 1.5),
+      });
 
-        console.log(`[CourseGenerator] Generating chapter ${i + 1}/${totalChapters}: ${chapter.title}`);
-
-        this.updateStatus(courseId, 'generating', Math.floor(progress), {
-          currentChapter: i + 1,
-          totalChapters,
-          estimatedTimeRemaining: Math.ceil((totalChapters - i) * 1.5),
-        });
-
-        // Generate chapter content with retry logic
-        let content;
+      // Helper function to generate a single chapter with retry logic
+      const generateChapterWithRetry = async (chapter: Chapter, index: number, roleContext: string): Promise<{ index: number; content: any }> => {
         let retries = 0;
         const maxRetries = 2;
         
         while (retries <= maxRetries) {
           try {
-            content = await veniceAI.generateChapterContent(
-              chapter,
-              request.jobDescription || request.internalRole || ''
-            );
-            console.log(`[CourseGenerator] ✅ Chapter ${i + 1} content generated`);
-            break;
+            console.log(`[CourseGenerator] Generating chapter ${index + 1}/${totalChapters}: ${chapter.title}`);
+            const content = await veniceAI.generateChapterContent(chapter, roleContext);
+            console.log(`[CourseGenerator] ✅ Chapter ${index + 1} content generated`);
+            return { index, content };
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const isIncompleteError = errorMessage.includes('Incomplete') || 
@@ -197,26 +188,49 @@ export class CourseGenerator {
             
             if (isIncompleteError && retries < maxRetries) {
               retries++;
-              console.log(`[CourseGenerator] ⚠️ Retry ${retries}/${maxRetries} for chapter ${i + 1}`);
+              console.log(`[CourseGenerator] ⚠️ Retry ${retries}/${maxRetries} for chapter ${index + 1}`);
               await new Promise(resolve => setTimeout(resolve, 2000));
               continue;
             } else {
-              console.error(`[CourseGenerator] ❌ Failed to generate chapter ${i + 1}:`, errorMessage);
+              console.error(`[CourseGenerator] ❌ Failed to generate chapter ${index + 1}:`, errorMessage);
               throw error;
             }
           }
         }
+        throw new Error('Max retries exceeded');
+      };
 
-        course = devStorage.getCourse(courseId);
-        if (!course) throw new Error(`Course ${courseId} disappeared during generation!`);
-        course.chapters[i].content = content;
-        devStorage.setCourse(courseId, course);
-      }
+      // Generate all chapters concurrently
+      const roleContext = request.jobDescription || request.internalRole || '';
+      const chapterPromises = chaptersToProcess.map((chapter, index) => 
+        generateChapterWithRetry(chapter, index, roleContext)
+      );
 
-      console.log(`[CourseGenerator] ✅ All ${totalChapters} chapters generated`);
+      // Wait for all chapters to complete, updating progress as they finish
+      const results = await Promise.all(chapterPromises);
 
-      // Step 3: Enrich with latest news (80-95%)
-      console.log(`[CourseGenerator] Step 3: Enriching with latest updates...`);
+      // Update course with all generated content
+      course = devStorage.getCourse(courseId);
+      if (!course) throw new Error(`Course ${courseId} disappeared during generation!`);
+
+      // Sort results by index to maintain chapter order
+      results.sort((a, b) => a.index - b.index);
+      
+      // Assign content to chapters
+      results.forEach(({ index, content }) => {
+        course!.chapters[index].content = content;
+      });
+
+      devStorage.setCourse(courseId, course);
+      this.updateStatus(courseId, 'generating', 80, {
+        totalChapters,
+        estimatedTimeRemaining: 2,
+      });
+
+      console.log(`[CourseGenerator] ✅ All ${totalChapters} chapters generated concurrently`);
+
+      // Step 3: Enrich with latest news concurrently (80-95%)
+      console.log(`[CourseGenerator] Step 3: Enriching with latest updates concurrently...`);
       course = devStorage.getCourse(courseId);
       if (!course) throw new Error(`Course ${courseId} disappeared!`);
       
@@ -224,31 +238,35 @@ export class CourseGenerator {
       this.updateStatus(courseId, 'enriching', 80, {
         estimatedTimeRemaining: Math.ceil(chaptersForNews.length * 0.5),
       });
-      
-      for (let i = 0; i < chaptersForNews.length; i++) {
-        this.updateStatus(courseId, 'enriching', Math.floor(80 + (15 * ((i + 1) / chaptersForNews.length))), {
-          currentChapter: i + 1,
-          totalChapters: chaptersForNews.length,
-          estimatedTimeRemaining: Math.max(1, Math.ceil((chaptersForNews.length - i) * 0.5)),
-        });
 
+      // Fetch news for all chapters concurrently
+      const contextForNews = request.jobDescription || request.internalRole || '';
+      const newsPromises = chaptersForNews.map(async (chapter, index) => {
         try {
-          const contextForNews = request.jobDescription || request.internalRole || '';
-          const latestNews = await veniceAI.fetchLatestUpdates(chaptersForNews[i].title, contextForNews);
-          course = devStorage.getCourse(courseId);
-          if (course) {
-            course.chapters[i].latestNews = latestNews;
-            devStorage.setCourse(courseId, course);
-          }
+          console.log(`[CourseGenerator] Fetching news for chapter ${index + 1}: ${chapter.title}`);
+          const latestNews = await veniceAI.fetchLatestUpdates(chapter.title, contextForNews);
+          return { index, news: latestNews };
         } catch (error) {
-          console.log(`[CourseGenerator] ⚠️ Failed to fetch news for chapter ${i + 1}, continuing...`);
-          course = devStorage.getCourse(courseId);
-          if (course) {
-            course.chapters[i].latestNews = [];
-            devStorage.setCourse(courseId, course);
-          }
+          console.log(`[CourseGenerator] ⚠️ Failed to fetch news for chapter ${index + 1}, using empty array...`);
+          return { index, news: [] };
         }
-      }
+      });
+
+      // Wait for all news fetches to complete
+      const newsResults = await Promise.all(newsPromises);
+
+      // Update course with all news items
+      course = devStorage.getCourse(courseId);
+      if (!course) throw new Error(`Course ${courseId} disappeared!`);
+
+      newsResults.forEach(({ index, news }) => {
+        course!.chapters[index].latestNews = news;
+      });
+
+      devStorage.setCourse(courseId, course);
+      this.updateStatus(courseId, 'enriching', 95, {
+        estimatedTimeRemaining: 1,
+      });
 
       console.log(`[CourseGenerator] ✅ Enrichment complete`);
 

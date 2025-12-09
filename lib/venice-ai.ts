@@ -16,7 +16,7 @@ export class VeniceAIService {
   }
 
   /**
-   * Step 1: Analyze job description and create 10-chapter course outline
+   * Step 1: Analyze job description and create 5-chapter course outline
    */
   async analyzeJobAndCreateOutline(
     jobDescription: string,
@@ -26,9 +26,9 @@ export class VeniceAIService {
     console.log(`[VeniceAI] Base URL: ${VENICE_CONFIG.BASE_URL}`);
     console.log(`[VeniceAI] Model: ${VENICE_CONFIG.MODELS.REASONING}`);
     console.log(`[VeniceAI] API Key configured: ${!!VENICE_CONFIG.API_KEY ? 'YES' : 'NO'}`);
-    console.log(`[VeniceAI] Test mode: ${VENICE_CONFIG.TEST_MODE}, Chapters: ${VENICE_CONFIG.TEST_MODE ? VENICE_CONFIG.TEST_MODE_CHAPTERS : 10}`);
+    console.log(`[VeniceAI] Test mode: ${VENICE_CONFIG.TEST_MODE}, Chapters: ${VENICE_CONFIG.TEST_MODE ? VENICE_CONFIG.TEST_MODE_CHAPTERS : 5}`);
     
-    const chapterCount = VENICE_CONFIG.TEST_MODE ? VENICE_CONFIG.TEST_MODE_CHAPTERS : 10;
+    const chapterCount = VENICE_CONFIG.TEST_MODE ? VENICE_CONFIG.TEST_MODE_CHAPTERS : 5;
     const userPrompt = `
 Job Description: ${jobDescription}
 ${internalRole ? `Internal Role/Process: ${internalRole}` : ''}

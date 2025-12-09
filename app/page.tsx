@@ -118,7 +118,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-2xl font-bold mb-4">Deep Analysis</h3>
               <p className="text-slate-600 mb-4">
-                Venice Large (Qwen3-235B) analyzes your role and creates a perfectly structured 10-chapter learning path.
+                Venice Large (Qwen3-235B) analyzes your role and creates a perfectly structured 5-chapter learning path.
               </p>
               <div className="flex items-center text-slate-700 font-semibold">
                 <span>Role-specific curriculum</span>
@@ -185,7 +185,7 @@ export default function HomePage() {
                 <div>
                   <h4 className="text-xl font-bold mb-2">Fast Generation</h4>
                   <p className="text-slate-600">
-                    Get your complete 10-chapter course in under 3 minutes
+                    Get your complete 5-chapter course in under 3 minutes
                   </p>
                 </div>
               </div>

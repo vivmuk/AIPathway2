@@ -4,10 +4,12 @@ import { exportService } from '@/lib/export-service';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const courseId = params.id;
+    // Handle both sync and async params (Next.js 15 compatibility)
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const courseId = resolvedParams.id;
     const { format } = await request.json();
 
     // Validate format
